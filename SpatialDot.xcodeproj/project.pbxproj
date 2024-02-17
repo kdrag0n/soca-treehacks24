@@ -11,6 +11,7 @@
 		D835D9B22B80D05F007E169B /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D835D9B12B80D05F007E169B /* ContentView.swift */; };
 		D835D9B42B80D060007E169B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D835D9B32B80D060007E169B /* Assets.xcassets */; };
 		D835D9B72B80D060007E169B /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D835D9B62B80D060007E169B /* Preview Assets.xcassets */; };
+		D835D9BE2B80D14C007E169B /* AR.swift in Sources */ = {isa = PBXBuildFile; fileRef = D835D9BD2B80D14C007E169B /* AR.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -19,6 +20,7 @@
 		D835D9B12B80D05F007E169B /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		D835D9B32B80D060007E169B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D835D9B62B80D060007E169B /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		D835D9BD2B80D14C007E169B /* AR.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AR.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -55,6 +57,7 @@
 				D835D9B12B80D05F007E169B /* ContentView.swift */,
 				D835D9B32B80D060007E169B /* Assets.xcassets */,
 				D835D9B52B80D060007E169B /* Preview Content */,
+				D835D9BD2B80D14C007E169B /* AR.swift */,
 			);
 			path = SpatialDot;
 			sourceTree = "<group>";
@@ -139,6 +142,7 @@
 			files = (
 				D835D9B22B80D05F007E169B /* ContentView.swift in Sources */,
 				D835D9B02B80D05F007E169B /* SpatialDotApp.swift in Sources */,
+				D835D9BE2B80D14C007E169B /* AR.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -275,6 +279,8 @@
 				DEVELOPMENT_TEAM = HUAQ24HBR6;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = hi;
+				INFOPLIST_KEY_NSMotionUsageDescription = hi;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -304,6 +310,8 @@
 				DEVELOPMENT_TEAM = HUAQ24HBR6;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = hi;
+				INFOPLIST_KEY_NSMotionUsageDescription = hi;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
