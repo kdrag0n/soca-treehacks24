@@ -6,16 +6,15 @@ app = FastAPI()
 
 receivers = []
 
-@app.websocket("/ws/receive")
+@app.websocket("/ws/get_data")
 async def ws_send_data(websocket: WebSocket):
 
     await websocket.accept()
 
-    # receivers.append(websocket)
+    receivers.append(websocket)
 
     try:
         while True:
-            print('connected')
             # Keep the connection alive
             dummy_data = np.random.rand(10).tolist()
             await websocket.send_json({"float_array": dummy_data})
@@ -27,14 +26,23 @@ async def ws_send_data(websocket: WebSocket):
     except Exception as e:
         receivers.remove(websocket)
 
-@app.websocket("/ws/receive")
+@app.websocket("/ws/send_data")
 async def ws_receive_data(websocket: WebSocket):
     """
-    receive an array of floats from the client
+    receive an array of floats from the client, and send it to all the connected clients
     """
-    await websocket.accept()
-    # receivers.append(websocket)
 
+    await websocket.accept()
+
+    try:
+        while True:
+            data = await websocket.receive_json()
+            print(data)
+            # for receiver in receivers:
+            #     await receiver.send_json(data)
+
+    except Exception as e:
+        pass
 
 
 
