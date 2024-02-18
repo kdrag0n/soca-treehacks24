@@ -172,6 +172,7 @@ class ARClient: NSObject, ObservableObject, ARSessionDelegate, URLSessionDelegat
             case .peerClosed:
                    break
         }
+    }
     
     func advancePos() {
         
