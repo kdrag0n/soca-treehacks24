@@ -46,6 +46,7 @@ class ARClient: NSObject, ObservableObject, ARSessionDelegate, URLSessionDelegat
     let view = ARSCNView(frame: .zero)
     let session: ARSession
     private var pointCloud = [simd_float3]()
+    private var pointCloudOld = [Float]()
     @Published var depthBuffer: CVPixelBuffer? = nil
     @Published var contoursPath: CGPath? = nil
     private var oldAnchors = [ARAnchor]()
@@ -252,6 +253,8 @@ class ARClient: NSObject, ObservableObject, ARSessionDelegate, URLSessionDelegat
 //            print("min=\(minDepth) max=\(maxDepth)")
             pointCloud.removeAll()
             pointCloud.reserveCapacity(width * height)
+            pointCloudOld.removeAll()
+            pointCloudOld.reserveCapacity(width * height*3)
             for x in 0..<width {
                 for y in 0..<height {
                     let i = y*width + x
@@ -281,6 +284,9 @@ class ARClient: NSObject, ObservableObject, ARSessionDelegate, URLSessionDelegat
 //                    pointCloud.append(simd_float3(worldVec))
 //                    pointCloud.append(simd_float3(worldX, worldY, worldZ))
                     pointCloud.append(simd_float3(Float(x)/Float(width), Float(y)/Float(height), worldZ))
+                    pointCloudOld.append(worldX)
+                    pointCloudOld.append(worldY)
+                    pointCloudOld.append(worldZ)
                 }
             }
             
@@ -342,7 +348,7 @@ class ARClient: NSObject, ObservableObject, ARSessionDelegate, URLSessionDelegat
             CVPixelBufferUnlockBaseAddress(confidenceBuf, .readOnly)
             CVPixelBufferUnlockBaseAddress(buf, .readOnly)
             depthBuffer = grayscaleBuf
-            onNewPointCloud(pointCloud)
+            onNewPointCloud(pointCloudOld)
         }
     }
     
