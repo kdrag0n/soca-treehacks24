@@ -1,6 +1,7 @@
 from fastapi import FastAPI, WebSocket, BackgroundTasks
 import asyncio
 import numpy as np
+import json
 
 app = FastAPI()
 
@@ -31,16 +32,24 @@ async def ws_receive_data(websocket: WebSocket):
     receive an array of floats from the client, and send it to all the connected clients
     """
 
-    await websocket.accept()
 
-    try:
-        while True:
-            data = await websocket.receive_json()
-            for receiver in receivers:
-                await receiver.send_json(data)
+    while True:
+        await websocket.accept()
+        try:
+            while True:
+                # data = await websocket.receive_json()
+                data = await websocket.receive_bytes()
+                # decode the bytes to a list of floats
+                data = {"float_array": (np.frombuffer(data, dtype=np.float16) * 100).tolist()}
 
-    except Exception as e:
-        pass
+                print(data)
+                for receiver in receivers:
+                    await receiver.send_json(data)
+
+        # except (RuntimeError, ConnectionError) as e:
+        except Exception as e:
+            print(e)
+            pass
 
 
 

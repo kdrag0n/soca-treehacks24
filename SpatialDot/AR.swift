@@ -9,6 +9,8 @@ import Foundation
 import SwiftUI
 import ARKit
 import PHASE
+import Starscream
+
 
 private let depthWidth = 256
 private let depthHeight = 192
@@ -16,7 +18,11 @@ private let depthDownsample = 4
 private let depthDW = depthWidth / depthDownsample
 private let depthDH = depthHeight / depthDownsample
 
-class ARClient: NSObject, ObservableObject, ARSessionDelegate, URLSessionDelegate {
+class ARClient: NSObject, ObservableObject, ARSessionDelegate, URLSessionDelegate, WebSocketDelegate {
+  
+
+
+    
     let view = ARSCNView(frame: .zero)
     let session: ARSession
     private var pointCloud = [Float]()
@@ -27,25 +33,35 @@ class ARClient: NSObject, ObservableObject, ARSessionDelegate, URLSessionDelegat
     let engine = AVAudioEngine()
     var players = [AVAudioPlayerNode]()
     let env = AVAudioEnvironmentNode()
-    var webSocket : URLSessionWebSocketTask?
+//    var webSocket : URLSessionWebSocketTask?
+    var webSocket: WebSocket
 
     override init() {
-
+        
+        var request = URLRequest(url: URL(string: "wss://a109-171-64-77-61.ngrok-free.app/ws/send_data")!)
+        request.timeoutInterval = 500
+        webSocket = WebSocket(request: request)
+        print(webSocket)
+        webSocket.connect()
         
         session = view.session
         super.init()
         session.delegate = self
         start()
         
+        webSocket.delegate = self
+
         
-
-        let wssession = URLSession(configuration: .default, delegate: self, delegateQueue: OperationQueue())
-        let url = URL(string: "wss://a109-171-64-77-61.ngrok-free.app/ws/send_data")
-
-        webSocket = wssession.webSocketTask(with: url!)
-        print(webSocket!)
-        webSocket!.resume()
-        print("this is running")
+        
+//
+//
+//        let wssession = URLSession(configuration: .default, delegate: self, delegateQueue: OperationQueue())
+//        let url = URL(string: "wss://a109-171-64-77-61.ngrok-free.app/ws/send_data")
+//
+//        webSocket = wssession.webSocketTask(with: url!)
+//        print(webSocket!)
+//        webSocket!.resume()
+//        print("this is running")
 
 
         
@@ -71,15 +87,44 @@ class ARClient: NSObject, ObservableObject, ARSessionDelegate, URLSessionDelegat
     }
     
     
+//    func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didOpenWithProtocol protocol: String?) {
+//            print("Connected to server")
+//    }
+//
+//    func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didCloseWith closeCode: URLSessionWebSocketTask.CloseCode, reason: Data?) {
+//        print("Disconnect from Server \(String(describing: reason))")
+//    }
     
-    func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didOpenWithProtocol protocol: String?) {
-            print("Connected to server")
-    }
 
-    func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didCloseWith closeCode: URLSessionWebSocketTask.CloseCode, reason: Data?) {
-        print("Disconnect from Server \(String(describing: reason))")
+    func didReceive(event: Starscream.WebSocketEvent, client: Starscream.WebSocketClient) {
+        var isConnected = false
+        switch event {
+        case .connected(let headers):
+            isConnected = true
+            print("websocket is connected: \(headers)")
+        case .disconnected(let reason, let code):
+            isConnected = false
+            print("websocket is disconnected: \(reason) with code: \(code)")
+        case .text(let string):
+            print("Received text: \(string)")
+        case .binary(let data):
+            print("Received data: \(data.count)")
+        case .ping(_):
+            break
+        case .pong(_):
+            break
+        case .viabilityChanged(_):
+            break
+        case .reconnectSuggested(_):
+            break
+        case .cancelled:
+            isConnected = false
+        case .error(let error):
+            isConnected = false
+            case .peerClosed:
+                   break
+        }
     }
-    
     
     func start() {
         let config = ARWorldTrackingConfiguration()
@@ -244,18 +289,32 @@ class ARClient: NSObject, ObservableObject, ARSessionDelegate, URLSessionDelegat
     // flat array of x,y,z - 256x192
     func onNewPointCloud(_ pointCloud: [Float]) {
 
-        let n = 1000 // TODO
-            let indicies = (0..<n).map { _ in Int.random(in: 0..<pointCloud.count / 3) }
+        let n = 3 000 // TODO will break
+        let indicies = (0..<n).map { _ in Int.random(in: 0..<pointCloud.count / 3) }
 
-        var points = [Float]()
+        var points = [Float16]()
         for i in indicies {
             let x = pointCloud[i * 3]
             let y = pointCloud[i * 3 + 1]
             let z = pointCloud[i * 3 + 2]
-            points.append(x)
-            points.append(y)
-            points.append(z)
+            points.append(Float16(x))
+            points.append(Float16(y))
+            points.append(Float16(z))
         }
+        
+        /*webSocket.write(data: [points[0]])*/
+        // write out float array into a data object (binary) 
+        // by converting to  binary
+
+
+//        let data = Data(string: points)
+        let data = Data(bytes: &points, count: points.count * MemoryLayout<Float16>.stride)
+
+
+        webSocket.write(data: data)
+//        webSocket.write(string: "hellooo", completion: handleCompletion)
+//        print(webSocket)
+
 
         // now, we want to take these points and send them through a websocket
         // the code below is a direct translation of the python code in the server

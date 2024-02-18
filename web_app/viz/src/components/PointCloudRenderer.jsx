@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState, useRef, Suspense } from 'react';
 import * as THREE from 'three';
-import { Canvas, useFrame, useLoader } from '@react-three/fiber'
+import { Canvas, useFrame, useLoader, useThree } from '@react-three/fiber'
 import circleImg from "../assets/circle.png";
 
 import { 
@@ -27,8 +27,9 @@ const PointCloudRenderer = ({ vertices }) => {
         import("../assets/pointcloudtest_1.json").then(arr => {
             //console.log("hello!", arr)
             for (let i = 0; i < arr.length; i++) {
+                //const [x, y, z] = arr[i];
                 const [x, y, z] = arr[i];
-                positions.push(x, y, z);
+                positions.push(x, z, -y);
             }
             positions = positions.map((x) => x * 100);
             let v = new Float32Array(positions);
@@ -38,13 +39,15 @@ const PointCloudRenderer = ({ vertices }) => {
 
     useEffect(() => {
         const ws = new WebSocket('ws://localhost:8000/ws/get_data');
+        //const ws = new WebSocket("wss://a109-171-64-77-61.ngrok-free.app/ws/send_data");
+
 
         ws.addEventListener("open", (event) => {
             ws.send("Connection established")
         })
 
         ws.addEventListener("message", (event) => {
-            console.log("Message from server")
+            console.log("Message from server", event.data)
             // expect to receive a Float32Array
             //console.log(event.data)
             // the event.data is a string of json which is {"float_array": [0.0, 0.0, 0.0, ...]}
@@ -116,7 +119,7 @@ const PointCloudRenderer = ({ vertices }) => {
                     //backgroundColor: 'black',
                 }}
             >
-                <Bounds fit clip observe margin={1.2}>
+                {/*<Bounds fit clip observe margin={1.2}>*/}
                     <points key={key}>
                         <bufferGeometry attach="geometry">
                             <bufferAttribute
@@ -142,10 +145,13 @@ const PointCloudRenderer = ({ vertices }) => {
                         <Box position={[-1.2, 0, 0]} />
                         <Box position={[1.2, 0, 0]} />
                     </SelectToZoom>
-                </Bounds>
+                {/*</Bounds>*/}
 
                 <ambientLight intensity={Math.PI / 2} />
-              <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 1.75} />
+              <OrbitControls makeDefault minPolarAngle={0}  />
+                <RotatedCamera />
+                {/*add a camera, that is rotated along the depth-axis by 90 degrees*/}
+
             </Canvas>
         </div>
     )
@@ -186,3 +192,14 @@ function SelectToZoom({ children }) {
     )
 }
 
+function RotatedCamera() {
+    const { camera } = useThree(); // Access the Three.js camera from the context
+
+    useEffect(() => {
+        // Rotate the camera 90 degrees around the Z-axis
+        camera.rotation.z = Math.PI /2; // 90 degrees in radians
+        camera.updateProjectionMatrix(); // Important to update the camera after changing its properties
+    }, [camera]);
+
+    return null; // This component doesn't render anything itself
+}
