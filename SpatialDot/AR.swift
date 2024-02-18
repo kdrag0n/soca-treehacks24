@@ -16,7 +16,7 @@ private let depthDownsample = 4
 private let depthDW = depthWidth / depthDownsample
 private let depthDH = depthHeight / depthDownsample
 
-class ARClient: NSObject, ObservableObject, ARSessionDelegate {
+class ARClient: NSObject, ObservableObject, ARSessionDelegate, URLSessionDelegate {
     let view = ARSCNView(frame: .zero)
     let session: ARSession
     private var pointCloud = [Float]()
@@ -27,32 +27,59 @@ class ARClient: NSObject, ObservableObject, ARSessionDelegate {
     let engine = AVAudioEngine()
     var players = [AVAudioPlayerNode]()
     let env = AVAudioEnvironmentNode()
-    
+    var webSocket : URLSessionWebSocketTask?
+
     override init() {
+
+        
         session = view.session
         super.init()
         session.delegate = self
         start()
         
-        engine.attach(env)
         
-        // load wav
-        let url = Bundle.main.url(forResource: "pinknoise", withExtension: "wav")!
-        let audioFile = try! AVAudioFile(forReading: url)
-        let audioBuffer = AVAudioPCMBuffer(pcmFormat: audioFile.processingFormat, frameCapacity: AVAudioFrameCount(audioFile.length))!
-        try! audioFile.read(into: audioBuffer)
+
+        let wssession = URLSession(configuration: .default, delegate: self, delegateQueue: OperationQueue())
+        let url = URL(string: "wss://a109-171-64-77-61.ngrok-free.app/ws/send_data")
+
+        webSocket = wssession.webSocketTask(with: url!)
+        print(webSocket!)
+        webSocket!.resume()
+        print("this is running")
+
+
         
-        players.reserveCapacity(depthDW * depthDH)
-        for i in 0..<(depthDW*depthDH) {
-            let player = AVAudioPlayerNode()
-            player.renderingAlgorithm = .sphericalHead
-            players.append(player)
-            engine.attach(player)
-            engine.connect(player, to: env, format: audioBuffer.format)
-        }
-        engine.connect(env, to: engine.outputNode, format: engine.outputNode.outputFormat(forBus: 0))
-        try! engine.start()
+//
+//        engine.attach(env)
+//
+//        // load wav
+//        let url = Bundle.main.url(forResource: "pinknoise", withExtension: "wav")!
+//        let audioFile = try! AVAudioFile(forReading: url)
+//        let audioBuffer = AVAudioPCMBuffer(pcmFormat: audioFile.processingFormat, frameCapacity: AVAudioFrameCount(audioFile.length))!
+//        try! audioFile.read(into: audioBuffer)
+//
+//        players.reserveCapacity(depthDW * depthDH)
+//        for i in 0..<(depthDW*depthDH) {
+//            let player = AVAudioPlayerNode()
+//            player.renderingAlgorithm = .sphericalHead
+//            players.append(player)
+//            engine.attach(player)
+//            engine.connect(player, to: env, format: audioBuffer.format)
+//        }
+//        engine.connect(env, to: engine.outputNode, format: engine.outputNode.outputFormat(forBus: 0))
+//        try! engine.start()
     }
+    
+    
+    
+    func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didOpenWithProtocol protocol: String?) {
+            print("Connected to server")
+    }
+
+    func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didCloseWith closeCode: URLSessionWebSocketTask.CloseCode, reason: Data?) {
+        print("Disconnect from Server \(String(describing: reason))")
+    }
+    
     
     func start() {
         let config = ARWorldTrackingConfiguration()
@@ -144,6 +171,7 @@ class ARClient: NSObject, ObservableObject, ARSessionDelegate {
             CVPixelBufferUnlockBaseAddress(confidenceBuf, .readOnly)
             CVPixelBufferUnlockBaseAddress(buf, .readOnly)
             depthBuffer = grayscaleBuf
+            onNewPointCloud(pointCloud)
             
             return
             
@@ -161,7 +189,7 @@ class ARClient: NSObject, ObservableObject, ARSessionDelegate {
             let reqHandler = VNImageRequestHandler(cvPixelBuffer: grayscaleBuf, orientation: .up)
             try! reqHandler.perform([contoursReq])
             if let contours = contoursReq.results?.first {
-                print("contours: count=\(contours.contourCount) toplevel=\(contours.topLevelContourCount)")// path=\(contours.normalizedPath)")
+//                print("contours: count=\(contours.contourCount) toplevel=\(contours.topLevelContourCount)")// path=\(contours.normalizedPath)")
                 contoursPath = contours.normalizedPath
                 
                 for ci in 0..<contours.contourCount {
@@ -189,7 +217,7 @@ class ARClient: NSObject, ObservableObject, ARSessionDelegate {
                     let centerX = totalX / Float(contour.normalizedPoints.count)
                     let centerY = totalY / Float(contour.normalizedPoints.count)
                     let centerZ = totalZ / Float(contour.normalizedPoints.count)
-                    print("contour \(ci): \(centerX) \(centerY) \(centerZ)")
+//                    print("contour \(ci): \(centerX) \(centerY) \(centerZ)")
                     var translation = matrix_identity_float4x4
                     translation.columns.3.x = centerX
                     translation.columns.3.y = centerY
@@ -200,20 +228,59 @@ class ARClient: NSObject, ObservableObject, ARSessionDelegate {
                     oldAnchors.append(anchor)
                 }
             }
-            
-            onNewPointCloud(pointCloud)
         }
     }
     
     func exportPointCloud() {
         let jsonStr = try! JSONEncoder().encode(pointCloud)
-        print(String(data: jsonStr, encoding: .utf8)!)
+//        print(String(data: jsonStr, encoding: .utf8)!)
         let paths = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)
         try! jsonStr.write(to: URL(fileURLWithPath: "\(paths[0])/pointcloud_\(Date.now.timeIntervalSince1970).json"))
     }
-    
+
+
+   
+
     // flat array of x,y,z - 256x192
     func onNewPointCloud(_ pointCloud: [Float]) {
-        // TODO
+
+        let n = 1000 // TODO
+            let indicies = (0..<n).map { _ in Int.random(in: 0..<pointCloud.count / 3) }
+
+        var points = [Float]()
+        for i in indicies {
+            let x = pointCloud[i * 3]
+            let y = pointCloud[i * 3 + 1]
+            let z = pointCloud[i * 3 + 2]
+            points.append(x)
+            points.append(y)
+            points.append(z)
+        }
+
+        // now, we want to take these points and send them through a websocket
+        // the code below is a direct translation of the python code in the server
+        /*async def send_dummy_data():
+
+            # Create an SSL context that does not verify the certificate
+            ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+            ssl_context.check_hostname = False
+            ssl_context.verify_mode = ssl.CERT_NONE
+
+            # uri = "ws://localhost:8000/ws/send_data"
+            uri = "wss://a109-171-64-77-61.ngrok-free.app/ws/send_data"
+
+            async with websockets.connect(uri, ssl=ssl_context) as websocket:
+                while True:
+                    # await asyncio.sleep(0.1)
+                    dummy_data = (np.random.rand(10000 * 3) * 100).astype(np.float16).tolist()
+                    await websocket.send(json.dumps({"float_array": dummy_data}))*/
+
+        /*let sslContext = SSLContext()*/
+        /*sslContext.checkHostname = false*/
+        /*sslContext.verifyMode = .none*/
+
+
     }
 }
+
+

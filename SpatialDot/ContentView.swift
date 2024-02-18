@@ -124,6 +124,7 @@ struct ContentView: View {
         }
         .onAppear {
             UIApplication.shared.isIdleTimerDisabled = true
+            
         }
         .padding()
     }
@@ -137,8 +138,4 @@ extension UIImage {
         guard let cgImage else { return nil }
         self.init(cgImage: cgImage)
     }
-}
-
-#Preview {
-    ContentView()
 }
