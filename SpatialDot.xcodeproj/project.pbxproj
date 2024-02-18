@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2CC13C212B81D88C000AC623 /* Starscream in Frameworks */ = {isa = PBXBuildFile; productRef = 2CC13C202B81D88C000AC623 /* Starscream */; };
 		D81770D12B81A76C00DFD9AE /* pinknoise.wav in Resources */ = {isa = PBXBuildFile; fileRef = D81770D02B81A76C00DFD9AE /* pinknoise.wav */; };
 		D835D9B02B80D05F007E169B /* SpatialDotApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D835D9AF2B80D05F007E169B /* SpatialDotApp.swift */; };
 		D835D9B22B80D05F007E169B /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D835D9B12B80D05F007E169B /* ContentView.swift */; };
@@ -45,6 +46,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2CC13C212B81D88C000AC623 /* Starscream in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -112,6 +114,9 @@
 			dependencies = (
 			);
 			name = SpatialDot;
+			packageProductDependencies = (
+				2CC13C202B81D88C000AC623 /* Starscream */,
+			);
 			productName = SpatialDot;
 			productReference = D835D9AC2B80D05F007E169B /* SpatialDot.app */;
 			productType = "com.apple.product-type.application";
@@ -140,6 +145,9 @@
 				Base,
 			);
 			mainGroup = D835D9A32B80D05F007E169B;
+			packageReferences = (
+				2CC13C1F2B81D88C000AC623 /* XCRemoteSwiftPackageReference "Starscream" */,
+			);
 			productRefGroup = D835D9AD2B80D05F007E169B /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -307,11 +315,11 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = SpatialDot/SpatialDot.entitlements;
+				CODE_SIGN_ENTITLEMENTS = "";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"SpatialDot/Preview Content\"";
-				DEVELOPMENT_TEAM = HUAQ24HBR6;
+				DEVELOPMENT_TEAM = 8DKMP5D8LR;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = hi;
@@ -321,12 +329,13 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = dev.kdrag0n.SpatialDot;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.kdrag0n.SpatialDot2;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
@@ -340,11 +349,11 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = SpatialDot/SpatialDot.entitlements;
+				CODE_SIGN_ENTITLEMENTS = "";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"SpatialDot/Preview Content\"";
-				DEVELOPMENT_TEAM = HUAQ24HBR6;
+				DEVELOPMENT_TEAM = 8DKMP5D8LR;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = hi;
@@ -354,12 +363,13 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = dev.kdrag0n.SpatialDot;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.kdrag0n.SpatialDot2;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -389,6 +399,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		2CC13C1F2B81D88C000AC623 /* XCRemoteSwiftPackageReference "Starscream" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/daltoniam/Starscream";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		2CC13C202B81D88C000AC623 /* Starscream */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2CC13C1F2B81D88C000AC623 /* XCRemoteSwiftPackageReference "Starscream" */;
+			productName = Starscream;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = D835D9A42B80D05F007E169B /* Project object */;
 }
