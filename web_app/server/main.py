@@ -1,4 +1,4 @@
-from fastapi import FastAPI, WebSocket, BackgroundTasks
+from fastapi import FastAPI, WebSocket, BackgroundTasks, WebSocketDisconnect
 import asyncio
 import numpy as np
 import json
@@ -42,10 +42,14 @@ async def ws_receive_data(websocket: WebSocket):
                 # decode the bytes to a list of floats
                 data = {"float_array": (np.frombuffer(data, dtype=np.float16) * 100).tolist()}
 
-                print(data)
+                print(data['float_array'][:3])
                 for receiver in receivers:
                     await receiver.send_json(data)
 
+        except WebSocketDisconnect as e:
+            print(e, 1)
+            return
+            pass
         # except (RuntimeError, ConnectionError) as e:
         except Exception as e:
             print(e)

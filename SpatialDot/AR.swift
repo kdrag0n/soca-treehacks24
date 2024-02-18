@@ -289,7 +289,7 @@ class ARClient: NSObject, ObservableObject, ARSessionDelegate, URLSessionDelegat
     // flat array of x,y,z - 256x192
     func onNewPointCloud(_ pointCloud: [Float]) {
 
-        let n = 3 000 // TODO will break
+        let n = 3000 // TODO will break
         let indicies = (0..<n).map { _ in Int.random(in: 0..<pointCloud.count / 3) }
 
         var points = [Float16]()
