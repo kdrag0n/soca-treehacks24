@@ -16,7 +16,6 @@ async def ws_send_data(websocket: WebSocket):
     try:
         while True:
             # Keep the connection alive
-            dummy_data = np.random.rand(10).tolist()
             await websocket.send_json({"float_array": dummy_data})
             await asyncio.sleep(0.1)  # Send data every second, adjust the sleep time as needed
 
@@ -43,6 +42,3 @@ async def ws_receive_data(websocket: WebSocket):
 
     except Exception as e:
         pass
-
-
-
