@@ -16,11 +16,11 @@ async def ws_send_data(websocket: WebSocket):
     try:
         while True:
             # Keep the connection alive
-            await websocket.send_json({"float_array": dummy_data})
-            await asyncio.sleep(0.1)  # Send data every second, adjust the sleep time as needed
+            # dummy_data = np.random.rand(10).tolist()
+            # await websocket.send_json({"float_array": dummy_data})
+            # await asyncio.sleep(0.1)  # Send data every second, adjust the sleep time as needed
 
-
-            # await websocket.receive_text()
+            await websocket.receive_text()
 
     except Exception as e:
         receivers.remove(websocket)
@@ -36,9 +36,11 @@ async def ws_receive_data(websocket: WebSocket):
     try:
         while True:
             data = await websocket.receive_json()
-            print(data)
-            # for receiver in receivers:
-            #     await receiver.send_json(data)
+            for receiver in receivers:
+                await receiver.send_json(data)
 
     except Exception as e:
         pass
+
+
+
