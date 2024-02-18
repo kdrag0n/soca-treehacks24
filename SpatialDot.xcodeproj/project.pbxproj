@@ -15,6 +15,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		D81770CF2B81928C00DFD9AE /* SpatialDot.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SpatialDot.entitlements; sourceTree = "<group>"; };
 		D835D9AC2B80D05F007E169B /* SpatialDot.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SpatialDot.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D835D9AF2B80D05F007E169B /* SpatialDotApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpatialDotApp.swift; sourceTree = "<group>"; };
 		D835D9B12B80D05F007E169B /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -53,6 +54,7 @@
 		D835D9AE2B80D05F007E169B /* SpatialDot */ = {
 			isa = PBXGroup;
 			children = (
+				D81770CF2B81928C00DFD9AE /* SpatialDot.entitlements */,
 				D835D9AF2B80D05F007E169B /* SpatialDotApp.swift */,
 				D835D9B12B80D05F007E169B /* ContentView.swift */,
 				D835D9B32B80D060007E169B /* Assets.xcassets */,
@@ -273,6 +275,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = SpatialDot/SpatialDot.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"SpatialDot/Preview Content\"";
@@ -294,6 +297,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = dev.kdrag0n.SpatialDot;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -304,6 +308,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = SpatialDot/SpatialDot.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"SpatialDot/Preview Content\"";

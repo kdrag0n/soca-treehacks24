@@ -10,7 +10,7 @@ import SwiftUI
 import ARKit
 
 class ARClient: NSObject, ObservableObject, ARSessionDelegate {
-    private let session = ARSession()
+    let session = ARSession()
     private var pointCloud = [simd_float3]()
     @Published var depthBuffer: CVPixelBuffer? = nil
     
@@ -35,6 +35,8 @@ class ARClient: NSObject, ObservableObject, ARSessionDelegate {
         if let depth = frame.sceneDepth {
             var cameraIntrinsics = frame.camera.intrinsics
             let cameraResolution = frame.camera.imageResolution
+            
+            let colorImage = frame.capturedImage
             
             let buf = depth.depthMap
             let width = CVPixelBufferGetWidth(buf)
@@ -83,7 +85,8 @@ class ARClient: NSObject, ObservableObject, ARSessionDelegate {
                 for y in 0..<height {
                     let i = y*width + x
                     let depthVal = bufAddr.advanced(by: i * 4).load(as: Float32.self)
-                    let depthUint8 = UInt8(max(0, min(depthVal / 5 * 255, 255)))
+                    let pixelVal = max(0, min(depthVal / 5, 1))
+                    let depthUint8 = UInt8(max(0, min(pow(pixelVal, 1/2.2) * 255, 255)))
                     // print("depth = \(depthVal)")
                     grayscaleBufAddr.advanced(by: i * 1).storeBytes(of: depthUint8, as: UInt8.self)
                     

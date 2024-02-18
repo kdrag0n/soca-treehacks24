@@ -7,6 +7,22 @@
 
 import SwiftUI
 import VideoToolbox
+import ARKit
+import RealityKit
+
+struct ARViewRepresentable: UIViewRepresentable {
+    let session: ARSession
+
+    func makeUIView(context: Context) -> ARView {
+        let arView = ARView(frame: .zero)
+        arView.automaticallyConfigureSession = false
+        arView.session = session
+        return arView
+    }
+    
+    func updateUIView(_ uiView: ARView, context: Context) {
+    }
+}
 
 struct ContentView: View {
     @StateObject private var ar = ARClient()
@@ -21,6 +37,9 @@ struct ContentView: View {
                         .scaleEffect(2)
                 }
             }
+            
+//            ARViewRepresentable(session: ar.session)
+//                .frame(width: 100, height: 100)
             
             Button("Dump") {
                 ar.exportPointCloud()
