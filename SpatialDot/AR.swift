@@ -10,19 +10,48 @@ import SwiftUI
 import ARKit
 import PHASE
 
+private let depthWidth = 256
+private let depthHeight = 192
+private let depthDownsample = 4
+private let depthDW = depthWidth / depthDownsample
+private let depthDH = depthHeight / depthDownsample
+
 class ARClient: NSObject, ObservableObject, ARSessionDelegate {
     let view = ARSCNView(frame: .zero)
     let session: ARSession
-    private var pointCloud = [simd_float3]()
+    private var pointCloud = [Float]()
     @Published var depthBuffer: CVPixelBuffer? = nil
     @Published var contoursPath: CGPath? = nil
     private var oldAnchors = [ARAnchor]()
+    
+    let engine = AVAudioEngine()
+    var players = [AVAudioPlayerNode]()
+    let env = AVAudioEnvironmentNode()
     
     override init() {
         session = view.session
         super.init()
         session.delegate = self
         start()
+        
+        engine.attach(env)
+        
+        // load wav
+        let url = Bundle.main.url(forResource: "pinknoise", withExtension: "wav")!
+        let audioFile = try! AVAudioFile(forReading: url)
+        let audioBuffer = AVAudioPCMBuffer(pcmFormat: audioFile.processingFormat, frameCapacity: AVAudioFrameCount(audioFile.length))!
+        try! audioFile.read(into: audioBuffer)
+        
+        players.reserveCapacity(depthDW * depthDH)
+        for i in 0..<(depthDW*depthDH) {
+            let player = AVAudioPlayerNode()
+            player.renderingAlgorithm = .sphericalHead
+            players.append(player)
+            engine.attach(player)
+            engine.connect(player, to: env, format: audioBuffer.format)
+        }
+        engine.connect(env, to: engine.outputNode, format: engine.outputNode.outputFormat(forBus: 0))
+        try! engine.start()
     }
     
     func start() {
@@ -93,7 +122,11 @@ class ARClient: NSObject, ObservableObject, ARSessionDelegate {
                     let pixelVal = max(0, min(depthVal / 5, 1))
                     let depthUint8 = UInt8(max(0, min(pow(pixelVal, 1/2.2) * 255, 255)))
                     // print("depth = \(depthVal)")
-                    grayscaleBufAddr.advanced(by: i * 1).storeBytes(of: depthUint8, as: UInt8.self)
+                    if x % 3 == 0 && y % 3 == 0 {
+                        grayscaleBufAddr.advanced(by: i * 1).storeBytes(of: depthUint8, as: UInt8.self)
+                    } else {
+                        grayscaleBufAddr.advanced(by: i * 1).storeBytes(of: 0, as: UInt8.self)
+                    }
                     
                     // add to point clouda
                     // cameraIntrinsics translates to camera width,height space
@@ -101,7 +134,9 @@ class ARClient: NSObject, ObservableObject, ARSessionDelegate {
                     let worldY = (Float(y) - cameraIntrinsics[2][1]) * depthVal / cameraIntrinsics[1][1]
                     let worldZ = depthVal
                     // TODO: check confidnece
-                    pointCloud.append(simd_float3(worldX, worldY, worldZ))
+                    pointCloud.append(worldX)
+                    pointCloud.append(worldY)
+                    pointCloud.append(worldZ)
                 }
             }
             //print("depth: min=\(minDepth) max=\(maxDepth) -> \(pointCloud)")
@@ -109,6 +144,8 @@ class ARClient: NSObject, ObservableObject, ARSessionDelegate {
             CVPixelBufferUnlockBaseAddress(confidenceBuf, .readOnly)
             CVPixelBufferUnlockBaseAddress(buf, .readOnly)
             depthBuffer = grayscaleBuf
+            
+            return
             
             for anchor in oldAnchors {
                 session.remove(anchor: anchor)
@@ -163,6 +200,8 @@ class ARClient: NSObject, ObservableObject, ARSessionDelegate {
                     oldAnchors.append(anchor)
                 }
             }
+            
+            onNewPointCloud(pointCloud)
         }
     }
     
@@ -171,5 +210,10 @@ class ARClient: NSObject, ObservableObject, ARSessionDelegate {
         print(String(data: jsonStr, encoding: .utf8)!)
         let paths = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)
         try! jsonStr.write(to: URL(fileURLWithPath: "\(paths[0])/pointcloud_\(Date.now.timeIntervalSince1970).json"))
+    }
+    
+    // flat array of x,y,z - 256x192
+    func onNewPointCloud(_ pointCloud: [Float]) {
+        // TODO
     }
 }

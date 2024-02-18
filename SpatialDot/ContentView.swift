@@ -96,16 +96,18 @@ struct ContentView: View {
         ScrollView {
             VStack {
                 if let depthBuffer = ar.depthBuffer {
-                    if let img = UIImage(pixelBuffer: depthBuffer),
-                       let path = ar.contoursPath {
+                    if let img = UIImage(pixelBuffer: depthBuffer)
+                    {
                         ZStack {
                             Image(uiImage: img)
                                 .frame(width: 384, height: 512)
-                            ScaledBezier(bezierPath: path)
-                                .stroke(.red, lineWidth: 2)
-                                .scaleEffect(x: -1, y: 1)
-                                .rotationEffect(.degrees(180))
-                                .frame(width: 384, height: 512)
+                            if let path = ar.contoursPath {
+                                ScaledBezier(bezierPath: path)
+                                    .stroke(.red, lineWidth: 2)
+                                    .scaleEffect(x: -1, y: 1)
+                                    .rotationEffect(.degrees(180))
+                                    .frame(width: 384, height: 512)
+                            }
                         }
                         .rotationEffect(.degrees(90))
                         .scaleEffect(2)
