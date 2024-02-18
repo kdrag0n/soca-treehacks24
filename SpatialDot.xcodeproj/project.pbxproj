@@ -14,6 +14,13 @@
 		D835D9B42B80D060007E169B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D835D9B32B80D060007E169B /* Assets.xcassets */; };
 		D835D9B72B80D060007E169B /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D835D9B62B80D060007E169B /* Preview Assets.xcassets */; };
 		D835D9BE2B80D14C007E169B /* AR.swift in Sources */ = {isa = PBXBuildFile; fileRef = D835D9BD2B80D14C007E169B /* AR.swift */; };
+		D85B9DD42B81D9A700E16537 /* untitled.wav in Resources */ = {isa = PBXBuildFile; fileRef = D85B9DD32B81D9A700E16537 /* untitled.wav */; };
+		D85B9DD62B81DA4300E16537 /* turn.m4a in Resources */ = {isa = PBXBuildFile; fileRef = D85B9DD52B81DA4300E16537 /* turn.m4a */; };
+		D85B9DD82B81EB7800E16537 /* music1.m4a in Resources */ = {isa = PBXBuildFile; fileRef = D85B9DD72B81EB7800E16537 /* music1.m4a */; };
+		D85B9DDA2B81ECBC00E16537 /* music1.wav in Resources */ = {isa = PBXBuildFile; fileRef = D85B9DD92B81ECBC00E16537 /* music1.wav */; };
+		D85B9DDC2B81EE5700E16537 /* siren.wav in Resources */ = {isa = PBXBuildFile; fileRef = D85B9DDB2B81EE5700E16537 /* siren.wav */; };
+		D85B9DDE2B81F4D300E16537 /* music2.wav in Resources */ = {isa = PBXBuildFile; fileRef = D85B9DDD2B81F4D300E16537 /* music2.wav */; };
+		D8B786C72B81FA2500D2E69D /* music1trim.wav in Resources */ = {isa = PBXBuildFile; fileRef = D8B786C62B81FA2500D2E69D /* music1trim.wav */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -25,6 +32,13 @@
 		D835D9B32B80D060007E169B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D835D9B62B80D060007E169B /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		D835D9BD2B80D14C007E169B /* AR.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AR.swift; sourceTree = "<group>"; };
+		D85B9DD32B81D9A700E16537 /* untitled.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = untitled.wav; sourceTree = "<group>"; };
+		D85B9DD52B81DA4300E16537 /* turn.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = turn.m4a; sourceTree = "<group>"; };
+		D85B9DD72B81EB7800E16537 /* music1.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = music1.m4a; sourceTree = "<group>"; };
+		D85B9DD92B81ECBC00E16537 /* music1.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = music1.wav; sourceTree = "<group>"; };
+		D85B9DDB2B81EE5700E16537 /* siren.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = siren.wav; sourceTree = "<group>"; };
+		D85B9DDD2B81F4D300E16537 /* music2.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = music2.wav; sourceTree = "<group>"; };
+		D8B786C62B81FA2500D2E69D /* music1trim.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = music1trim.wav; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -42,7 +56,14 @@
 		D835D9A32B80D05F007E169B = {
 			isa = PBXGroup;
 			children = (
+				D85B9DDD2B81F4D300E16537 /* music2.wav */,
+				D85B9DDB2B81EE5700E16537 /* siren.wav */,
+				D8B786C62B81FA2500D2E69D /* music1trim.wav */,
+				D85B9DD72B81EB7800E16537 /* music1.m4a */,
 				D81770D02B81A76C00DFD9AE /* pinknoise.wav */,
+				D85B9DD92B81ECBC00E16537 /* music1.wav */,
+				D85B9DD52B81DA4300E16537 /* turn.m4a */,
+				D85B9DD32B81D9A700E16537 /* untitled.wav */,
 				D835D9AE2B80D05F007E169B /* SpatialDot */,
 				D835D9AD2B80D05F007E169B /* Products */,
 			);
@@ -141,9 +162,16 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D8B786C72B81FA2500D2E69D /* music1trim.wav in Resources */,
+				D85B9DD82B81EB7800E16537 /* music1.m4a in Resources */,
 				D835D9B72B80D060007E169B /* Preview Assets.xcassets in Resources */,
+				D85B9DD42B81D9A700E16537 /* untitled.wav in Resources */,
 				D835D9B42B80D060007E169B /* Assets.xcassets in Resources */,
+				D85B9DD62B81DA4300E16537 /* turn.m4a in Resources */,
 				D81770D12B81A76C00DFD9AE /* pinknoise.wav in Resources */,
+				D85B9DDC2B81EE5700E16537 /* siren.wav in Resources */,
+				D85B9DDE2B81F4D300E16537 /* music2.wav in Resources */,
+				D85B9DDA2B81ECBC00E16537 /* music1.wav in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
