@@ -19,7 +19,7 @@
 		D85B9DDA2B81ECBC00E16537 /* music1.wav in Resources */ = {isa = PBXBuildFile; fileRef = D85B9DD92B81ECBC00E16537 /* music1.wav */; };
 		D85B9DDC2B81EE5700E16537 /* siren.wav in Resources */ = {isa = PBXBuildFile; fileRef = D85B9DDB2B81EE5700E16537 /* siren.wav */; };
 		D85B9DDE2B81F4D300E16537 /* music2.wav in Resources */ = {isa = PBXBuildFile; fileRef = D85B9DDD2B81F4D300E16537 /* music2.wav */; };
-		D8B786C72B81FA2500D2E69D /* music1trim.wav in Resources */ = {isa = PBXBuildFile; fileRef = D8B786C62B81FA2500D2E69D /* music1trim.wav */; };
+		D8B786CB2B8221E400D2E69D /* music1trim.wav in Resources */ = {isa = PBXBuildFile; fileRef = D8B786CA2B8221E400D2E69D /* music1trim.wav */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -37,7 +37,7 @@
 		D85B9DD92B81ECBC00E16537 /* music1.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = music1.wav; sourceTree = "<group>"; };
 		D85B9DDB2B81EE5700E16537 /* siren.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = siren.wav; sourceTree = "<group>"; };
 		D85B9DDD2B81F4D300E16537 /* music2.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = music2.wav; sourceTree = "<group>"; };
-		D8B786C62B81FA2500D2E69D /* music1trim.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = music1trim.wav; sourceTree = "<group>"; };
+		D8B786CA2B8221E400D2E69D /* music1trim.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; name = music1trim.wav; path = ../../../.Trash/music1trim.wav; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -54,9 +54,9 @@
 		D835D9A32B80D05F007E169B = {
 			isa = PBXGroup;
 			children = (
+				D8B786CA2B8221E400D2E69D /* music1trim.wav */,
 				D85B9DDD2B81F4D300E16537 /* music2.wav */,
 				D85B9DDB2B81EE5700E16537 /* siren.wav */,
-				D8B786C62B81FA2500D2E69D /* music1trim.wav */,
 				D85B9DD72B81EB7800E16537 /* music1.m4a */,
 				D81770D02B81A76C00DFD9AE /* pinknoise.wav */,
 				D85B9DD92B81ECBC00E16537 /* music1.wav */,
@@ -154,7 +154,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D8B786C72B81FA2500D2E69D /* music1trim.wav in Resources */,
+				D8B786CB2B8221E400D2E69D /* music1trim.wav in Resources */,
 				D85B9DD82B81EB7800E16537 /* music1.m4a in Resources */,
 				D835D9B72B80D060007E169B /* Preview Assets.xcassets in Resources */,
 				D85B9DD42B81D9A700E16537 /* untitled.wav in Resources */,

@@ -95,6 +95,13 @@ struct ContentView: View {
     var body: some View {
         ScrollView {
             VStack {
+                Picker("Mode", selection: $ar.mode) {
+                    Text("Point")
+                        .tag(Mode.point)
+                    Text("NAV")
+                        .tag(Mode.navigation)
+                }
+                .pickerStyle(.segmented)
                 if let depthBuffer = ar.depthBuffer {
                     if let img = UIImage(pixelBuffer: depthBuffer)
                     {

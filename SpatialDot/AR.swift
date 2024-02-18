@@ -34,6 +34,11 @@ class EwmaF32 {
 }
 private let ewmaWeight: Float = 0.2
 
+enum Mode {
+    case point
+    case navigation
+}
+
 class ARClient: NSObject, ObservableObject, ARSessionDelegate {
     let view = ARSCNView(frame: .zero)
     let session: ARSession
@@ -41,6 +46,7 @@ class ARClient: NSObject, ObservableObject, ARSessionDelegate {
     @Published var depthBuffer: CVPixelBuffer? = nil
     @Published var contoursPath: CGPath? = nil
     private var oldAnchors = [ARAnchor]()
+    @Published var mode = Mode.point
     
     let engine = AVAudioEngine()
     var players = [AVAudioPlayerNode]()
@@ -51,8 +57,8 @@ class ARClient: NSObject, ObservableObject, ARSessionDelegate {
     var lastPoint: (Float, Float, Float) = (0,0,0)
     
     private var initialHpAttitude: CMAttitude? = nil
-    private var initialDeviceAttitude: CMAttitude? = nil
-    private var lastDevRotation: simd_float3x3? = nil
+    private var initialPhoneAttitude: CMAttitude? = nil
+    private var phoneAttitudeDiff: CMAttitude? = nil
     
     private let ewmaX = EwmaF32(initial: 0, weight: ewmaWeight)
     private let ewmaY = EwmaF32(initial: 0, weight: ewmaWeight)
@@ -104,14 +110,11 @@ class ARClient: NSObject, ObservableObject, ARSessionDelegate {
         
         deviceMotion.startDeviceMotionUpdates(to: OperationQueue.current!) { [weak self] motion, error in
             guard let self, let motion else { return }
-            if initialDeviceAttitude == nil {
-                print("initial device = \(motion.attitude)")
-                initialDeviceAttitude = motion.attitude
+            if let initialPhoneAttitude {
+                motion.attitude.multiply(byInverseOf: initialPhoneAttitude)
+                phoneAttitudeDiff = motion.attitude
             } else {
-                let curDev = motion.attitude
-                curDev.multiply(byInverseOf: initialDeviceAttitude!)
-                let r = curDev.rotationMatrix
-                lastDevRotation = simd_float3x3(rotationMatrix: r).inverse
+                initialPhoneAttitude = motion.attitude
             }
         }
         hpMotion.startDeviceMotionUpdates(to: OperationQueue.current!) { [weak self] motion, error in
@@ -120,11 +123,10 @@ class ARClient: NSObject, ObservableObject, ARSessionDelegate {
             print("Headphones attitude angular: \(motion.attitude)")
 //            print("Headphones attitude rotation matrix: \(motion.attitude.rotationMatrix)")
 //            print("\(motion.attitude.pitch)")
-            env.listenerAngularOrientation = AVAudio3DAngularOrientation(yaw: Float(motion.attitude.yaw) / .pi * 180, pitch: Float(motion.attitude.pitch) / .pi * 180, roll: Float(motion.attitude.roll) / .pi * 180)
-            if initialHpAttitude == nil {
-                print("initial HP = \(motion.attitude)")
-                initialHpAttitude = motion.attitude
+            if let phoneAttitudeDiff {
+                motion.attitude.multiply(byInverseOf: phoneAttitudeDiff)
             }
+            env.listenerAngularOrientation = AVAudio3DAngularOrientation(yaw: Float(motion.attitude.yaw) / .pi * 180, pitch: Float(motion.attitude.pitch) / .pi * 180, roll: Float(motion.attitude.roll) / .pi * 180)
         }
     }
     
@@ -244,16 +246,17 @@ class ARClient: NSObject, ObservableObject, ARSessionDelegate {
             oldAnchors.removeAll()
             
             // sort by distance, closest (least z) first
-            pointCloud.sort { $0.magnitude < $1.magnitude }
+            if mode == .navigation {
+                pointCloud.sort { $0.magnitudeNoVertical < $1.magnitudeNoVertical }
+            } else {
+                pointCloud.sort { $0.magnitude < $1.magnitude }
+            }
 //            print("first = \(pointCloud.first!)")
 //            print("camera = \(frame.camera.projectionMatrix)")
             //env.listenerPosition = AVAudioMake3DPoint(0, 0, 0)
             //env.listenerPosition = AVAudioMake3DPoint(frame.camera.projectionMatrix.columns.3.x, frame.camera.projectionMatrix.columns.3.y, frame.camera.projectionMatrix.columns.3.z)
             //env.listenerPosition = AVAudioMake3DPoint(frame.camera.transform.columns.0.w, frame.camera.transform.columns.1.w, frame.camera.transform.columns.2.w)
             var listenerPos = simd_float3(0.5,0.5,0)
-            if let lastDevRotation {
-                listenerPos = lastDevRotation * listenerPos
-            }
             env.listenerPosition = listenerPos.av
 //            env.listenerPosition = AVAudioMake3DPoint(0, 0, 0)
             
@@ -261,11 +264,12 @@ class ARClient: NSObject, ObservableObject, ARSessionDelegate {
             for i in 0..<nSounds {
                 var pt = pointCloud[i]
                 pt = simd_float3(ewmaX.update(pt.x), ewmaY.update(pt.y), ewmaZ.update(pt.z))
-                if let lastDevRotation {
-                    pt = lastDevRotation * pt
-                }
            //     print("audio at \(pt) = \(sqrt(pt.x*pt.x + pt.y*pt.y + pt.z+pt.z))")
-                let avPoint = simd_float3(-pt[1] * 30, -pt[0] * 30, -pt[2] * 30).av
+                var audioPoint = simd_float3(-pt[1] * 30, -pt[0] * 30, -pt[2] * 30)
+                if mode == .navigation {
+                    audioPoint.y = listenerPos.y
+                }
+                let avPoint = audioPoint.av
                // print("\(pt)")
 //                let avPoint = AVAudioMake3DPoint(-80, 0, 0)
 //                let rad = -(abs(Float(DispatchTime.now().uptimeNanoseconds - startTime.uptimeNanoseconds) / 1e9) / 5 * (2*Float.pi))
@@ -290,56 +294,6 @@ class ARClient: NSObject, ObservableObject, ARSessionDelegate {
             CVPixelBufferUnlockBaseAddress(buf, .readOnly)
             depthBuffer = grayscaleBuf
             onNewPointCloud(pointCloud)
-            
-            return
-            
-            let contoursReq = VNDetectContoursRequest()
-            contoursReq.revision = VNDetectContourRequestRevision1
-            contoursReq.detectsDarkOnLight = false
-            contoursReq.contrastAdjustment = 1.0
-            contoursReq.maximumImageDimension = 256
-            // orientation is wrong but doesnt matter
-            let reqHandler = VNImageRequestHandler(cvPixelBuffer: grayscaleBuf, orientation: .up)
-            try! reqHandler.perform([contoursReq])
-            if let contours = contoursReq.results?.first {
-                print("contours: count=\(contours.contourCount) toplevel=\(contours.topLevelContourCount)")// path=\(contours.normalizedPath)")
-                contoursPath = contours.normalizedPath
-                
-                for ci in 0..<contours.contourCount {
-                    let contour = try! contours.contour(at: ci)
-                    var totalX: Float = 0
-                    var totalY: Float = 0
-                    var totalZ: Float = 0
-                    for pt in contour.normalizedPoints {
-                        let imgX = pt.x * Float(width)
-                        let imgY = pt.y * Float(height)
-                        let imgXint = max(0, min(Int(imgX), width-1))
-                        let imgYint = max(0, min(Int(imgY), height-1))
-                        let depthVal = bufAddr.advanced(by: (imgYint*width + imgXint) * 4).load(as: Float32.self)
-                        
-                        let worldX = (Float(imgX) - cameraIntrinsics[2][0]) * depthVal / cameraIntrinsics[0][0]
-                        let worldY = (Float(imgY) - cameraIntrinsics[2][1]) * depthVal / cameraIntrinsics[1][1]
-                        let worldZ = -depthVal
-                        
-                        totalX += worldX
-                        totalY += worldY
-                        totalZ += worldZ
-                    }
-                    
-                    let centerX = totalX / Float(contour.normalizedPoints.count)
-                    let centerY = totalY / Float(contour.normalizedPoints.count)
-                    let centerZ = totalZ / Float(contour.normalizedPoints.count)
-                    print("contour \(ci): \(centerX) \(centerY) \(centerZ)")
-                    var translation = matrix_identity_float4x4
-                    translation.columns.3.x = centerX
-                    translation.columns.3.y = centerY
-                    translation.columns.3.z = centerZ
-                    let transform = simd_mul(frame.camera.transform, translation)
-                    let anchor = ARAnchor(transform: transform)
-                    session.add(anchor: anchor)
-                    oldAnchors.append(anchor)
-                }
-            }
         }
     }
     
@@ -360,6 +314,9 @@ class ARClient: NSObject, ObservableObject, ARSessionDelegate {
 extension simd_float3 {
     var magnitude: Float {
         sqrt(x*x + y*y + z*z)
+    }
+    var magnitudeNoVertical: Float {
+        sqrt(x*x + z*z)
     }
     
     var av: AVAudio3DPoint {
