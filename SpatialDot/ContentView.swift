@@ -24,7 +24,7 @@ class SceneDelegate: NSObject, ARSCNViewDelegate {
     //func renderer(_ renderer: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
 
     func renderer(_ renderer: SCNSceneRenderer, nodeFor anchor: ARAnchor) -> SCNNode? {
-        print("new node:\(anchor.transform)")
+       // print("new node:\(anchor.transform)")
         // create node
         let node = SCNNode()
         node.simdTransform = anchor.transform
@@ -34,8 +34,8 @@ class SceneDelegate: NSObject, ARSCNViewDelegate {
         let sphereNode = SCNNode(geometry: sphere)
         node.addChildNode(sphereNode)
         
-        let audioPlayer = SCNAudioPlayer(source: audioSource)
-        sphereNode.addAudioPlayer(audioPlayer)
+//        let audioPlayer = SCNAudioPlayer(source: audioSource)
+//        sphereNode.addAudioPlayer(audioPlayer)
 
         return node
     }
@@ -118,11 +118,12 @@ struct ContentView: View {
                     .frame(width: 500, height: 500)
                 
                 Button("Dump") {
-                    ar.exportPointCloud()
+                    print(ar.lastPoint)
                 }
             }
         }
         .onAppear {
+            print("running")
             UIApplication.shared.isIdleTimerDisabled = true
             
         }
