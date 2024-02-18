@@ -9,6 +9,8 @@ import Foundation
 import SwiftUI
 import ARKit
 import PHASE
+import Starscream
+
 import CoreMotion
 
 private let depthWidth = 256
@@ -34,7 +36,11 @@ class EwmaF32 {
 }
 private let ewmaWeight: Float = 0.2
 
-class ARClient: NSObject, ObservableObject, ARSessionDelegate {
+class ARClient: NSObject, ObservableObject, ARSessionDelegate, URLSessionDelegate, WebSocketDelegate {
+  
+
+
+    
     let view = ARSCNView(frame: .zero)
     let session: ARSession
     private var pointCloud = [simd_float3]()
@@ -45,6 +51,9 @@ class ARClient: NSObject, ObservableObject, ARSessionDelegate {
     let engine = AVAudioEngine()
     var players = [AVAudioPlayerNode]()
     let env = AVAudioEnvironmentNode()
+//    var webSocket : URLSessionWebSocketTask?
+    var webSocket: WebSocket
+
     private let motionManager = CMHeadphoneMotionManager()
     let startTime = DispatchTime.now()
     var lastPoint: (Float, Float, Float) = (0,0,0)
@@ -54,6 +63,13 @@ class ARClient: NSObject, ObservableObject, ARSessionDelegate {
     private let ewmaZ = EwmaF32(initial: 0, weight: ewmaWeight)
     
     override init() {
+        
+        var request = URLRequest(url: URL(string: "wss://a109-171-64-77-61.ngrok-free.app/ws/send_data")!)
+        request.timeoutInterval = 500
+        webSocket = WebSocket(request: request)
+        print(webSocket)
+        webSocket.connect()
+        
         session = view.session
         super.init()
         session.delegate = self
@@ -62,7 +78,9 @@ class ARClient: NSObject, ObservableObject, ARSessionDelegate {
         print("right  = \(PHASEObject.right)")
         print("up  = \(PHASEObject.up)")
         
-//        env.distanceAttenuationParameters.distanceAttenuationModel = .exponential
+      
+      
+        //        env.distanceAttenuationParameters.distanceAttenuationModel = .exponential
         print("model=\(env.distanceAttenuationParameters.distanceAttenuationModel)")
         print("referenceDistance=\(env.distanceAttenuationParameters.referenceDistance)")
         print("referenceDistance=\(env.distanceAttenuationParameters.referenceDistance)")
@@ -97,7 +115,48 @@ class ARClient: NSObject, ObservableObject, ARSessionDelegate {
             player.play()
         }
         resetMotion()
+    
+      
+      
+      
+      
+//<<<<<<< swift_sockets
+        webSocket.delegate = self
+
+        
     }
+    
+    
+
+
+    func didReceive(event: Starscream.WebSocketEvent, client: Starscream.WebSocketClient) {
+        var isConnected = false
+        switch event {
+        case .connected(let headers):
+            isConnected = true
+            print("websocket is connected: \(headers)")
+        case .disconnected(let reason, let code):
+            isConnected = false
+            print("websocket is disconnected: \(reason) with code: \(code)")
+        case .text(let string):
+            print("Received text: \(string)")
+        case .binary(let data):
+            print("Received data: \(data.count)")
+        case .ping(_):
+            break
+        case .pong(_):
+            break
+        case .viabilityChanged(_):
+            break
+        case .reconnectSuggested(_):
+            break
+        case .cancelled:
+            isConnected = false
+        case .error(let error):
+            isConnected = false
+            case .peerClosed:
+                   break
+        }
     
     func resetMotion() {
         motionManager.stopDeviceMotionUpdates()
@@ -281,7 +340,7 @@ class ARClient: NSObject, ObservableObject, ARSessionDelegate {
             let reqHandler = VNImageRequestHandler(cvPixelBuffer: grayscaleBuf, orientation: .up)
             try! reqHandler.perform([contoursReq])
             if let contours = contoursReq.results?.first {
-                print("contours: count=\(contours.contourCount) toplevel=\(contours.topLevelContourCount)")// path=\(contours.normalizedPath)")
+//                print("contours: count=\(contours.contourCount) toplevel=\(contours.topLevelContourCount)")// path=\(contours.normalizedPath)")
                 contoursPath = contours.normalizedPath
                 
                 for ci in 0..<contours.contourCount {
@@ -308,7 +367,7 @@ class ARClient: NSObject, ObservableObject, ARSessionDelegate {
                     let centerX = totalX / Float(contour.normalizedPoints.count)
                     let centerY = totalY / Float(contour.normalizedPoints.count)
                     let centerZ = totalZ / Float(contour.normalizedPoints.count)
-                    print("contour \(ci): \(centerX) \(centerY) \(centerZ)")
+//                    print("contour \(ci): \(centerX) \(centerY) \(centerZ)")
                     var translation = matrix_identity_float4x4
                     translation.columns.3.x = centerX
                     translation.columns.3.y = centerY
@@ -324,17 +383,69 @@ class ARClient: NSObject, ObservableObject, ARSessionDelegate {
     
     func exportPointCloud() {
         let jsonStr = try! JSONEncoder().encode(pointCloud)
-        print(String(data: jsonStr, encoding: .utf8)!)
+//        print(String(data: jsonStr, encoding: .utf8)!)
         let paths = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)
         try! jsonStr.write(to: URL(fileURLWithPath: "\(paths[0])/pointcloud_\(Date.now.timeIntervalSince1970).json"))
     }
-    
+
+
+   
+
     // flat array of x,y,z - 256x192
-    func onNewPointCloud(_ pointCloud: [simd_float3]) {
-        // TODO
+    func onNewPointCloud(_ pointCloud: [Float]) {
+
+        let n = 3000 // TODO will break
+        let indicies = (0..<n).map { _ in Int.random(in: 0..<pointCloud.count / 3) }
+
+        var points = [Float16]()
+        for i in indicies {
+            let x = pointCloud[i * 3]
+            let y = pointCloud[i * 3 + 1]
+            let z = pointCloud[i * 3 + 2]
+            points.append(Float16(x))
+            points.append(Float16(y))
+            points.append(Float16(z))
+        }
+        
+        /*webSocket.write(data: [points[0]])*/
+        // write out float array into a data object (binary) 
+        // by converting to  binary
+
+
+//        let data = Data(string: points)
+        let data = Data(bytes: &points, count: points.count * MemoryLayout<Float16>.stride)
+
+
+        webSocket.write(data: data)
+//        webSocket.write(string: "hellooo", completion: handleCompletion)
+//        print(webSocket)
+
+
+        // now, we want to take these points and send them through a websocket
+        // the code below is a direct translation of the python code in the server
+        /*async def send_dummy_data():
+
+            # Create an SSL context that does not verify the certificate
+            ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+            ssl_context.check_hostname = False
+            ssl_context.verify_mode = ssl.CERT_NONE
+
+            # uri = "ws://localhost:8000/ws/send_data"
+            uri = "wss://a109-171-64-77-61.ngrok-free.app/ws/send_data"
+
+            async with websockets.connect(uri, ssl=ssl_context) as websocket:
+                while True:
+                    # await asyncio.sleep(0.1)
+                    dummy_data = (np.random.rand(10000 * 3) * 100).astype(np.float16).tolist()
+                    await websocket.send(json.dumps({"float_array": dummy_data}))*/
+
+        /*let sslContext = SSLContext()*/
+        /*sslContext.checkHostname = false*/
+        /*sslContext.verifyMode = .none*/
+
+
     }
 }
-
 
 extension simd_float3 {
     var magnitude: Float {
