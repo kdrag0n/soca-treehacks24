@@ -78,7 +78,7 @@ class ARClient: NSObject, ObservableObject, ARSessionDelegate {
         print("referenceDistance=\(env.distanceAttenuationParameters.referenceDistance)")
         print("referenceDistance=\(env.distanceAttenuationParameters.referenceDistance)")
         env.distanceAttenuationParameters.referenceDistance = 1
-        env.renderingAlgorithm = .HRTF
+        env.renderingAlgorithm = .HRTFHQ
         engine.attach(env)
         
         // load wav
@@ -94,7 +94,7 @@ class ARClient: NSObject, ObservableObject, ARSessionDelegate {
                 print("\(i)")
             }
             let player = AVAudioPlayerNode()
-            player.renderingAlgorithm = .HRTF
+            player.renderingAlgorithm = .HRTFHQ
             player.position = AVAudioMake3DPoint(100, 100, 100)
             players.append(player)
             engine.attach(player)
@@ -268,6 +268,11 @@ class ARClient: NSObject, ObservableObject, ARSessionDelegate {
                 var audioPoint = simd_float3(-pt[1] * 30, -pt[0] * 30, -pt[2] * 30)
                 if mode == .navigation {
                     audioPoint.y = listenerPos.y
+                }
+                // >1.5m = no sound
+                if pt.magnitude > 1.5 {
+                    audioPoint = simd_float3(100000.0, 100000, 100000)
+                    
                 }
                 let avPoint = audioPoint.av
                // print("\(pt)")
