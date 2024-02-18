@@ -45,9 +45,14 @@ class ARClient: NSObject, ObservableObject, ARSessionDelegate {
     let engine = AVAudioEngine()
     var players = [AVAudioPlayerNode]()
     let env = AVAudioEnvironmentNode()
-    private let motionManager = CMHeadphoneMotionManager()
+    private let hpMotion = CMHeadphoneMotionManager()
+    private let deviceMotion = CMMotionManager()
     let startTime = DispatchTime.now()
     var lastPoint: (Float, Float, Float) = (0,0,0)
+    
+    private var initialHpAttitude: CMAttitude? = nil
+    private var initialDeviceAttitude: CMAttitude? = nil
+    private var lastDevRotation: simd_float3x3? = nil
     
     private let ewmaX = EwmaF32(initial: 0, weight: ewmaWeight)
     private let ewmaY = EwmaF32(initial: 0, weight: ewmaWeight)
@@ -96,21 +101,30 @@ class ARClient: NSObject, ObservableObject, ARSessionDelegate {
             player.scheduleBuffer(audioBuffer, at: nil, options: .loops, completionHandler: nil)
             player.play()
         }
-        resetMotion()
-    }
-    
-    func resetMotion() {
-        motionManager.stopDeviceMotionUpdates()
-        motionManager.startDeviceMotionUpdates(to: OperationQueue.current!) { [weak self] motion, error in
+        
+        deviceMotion.startDeviceMotionUpdates(to: OperationQueue.current!) { [weak self] motion, error in
+            guard let self, let motion else { return }
+            if initialDeviceAttitude == nil {
+                print("initial device = \(motion.attitude)")
+                initialDeviceAttitude = motion.attitude
+            } else {
+                let curDev = motion.attitude
+                curDev.multiply(byInverseOf: initialDeviceAttitude!)
+                let r = curDev.rotationMatrix
+                lastDevRotation = simd_float3x3(rotationMatrix: r).inverse
+            }
+        }
+        hpMotion.startDeviceMotionUpdates(to: OperationQueue.current!) { [weak self] motion, error in
             guard let self, let motion else { return }
 //            print("Headphones motion: \(motion)")
             print("Headphones attitude angular: \(motion.attitude)")
 //            print("Headphones attitude rotation matrix: \(motion.attitude.rotationMatrix)")
 //            print("\(motion.attitude.pitch)")
             env.listenerAngularOrientation = AVAudio3DAngularOrientation(yaw: Float(motion.attitude.yaw) / .pi * 180, pitch: Float(motion.attitude.pitch) / .pi * 180, roll: Float(motion.attitude.roll) / .pi * 180)
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [self] in
-            resetMotion()
+            if initialHpAttitude == nil {
+                print("initial HP = \(motion.attitude)")
+                initialHpAttitude = motion.attitude
+            }
         }
     }
     
@@ -236,15 +250,22 @@ class ARClient: NSObject, ObservableObject, ARSessionDelegate {
             //env.listenerPosition = AVAudioMake3DPoint(0, 0, 0)
             //env.listenerPosition = AVAudioMake3DPoint(frame.camera.projectionMatrix.columns.3.x, frame.camera.projectionMatrix.columns.3.y, frame.camera.projectionMatrix.columns.3.z)
             //env.listenerPosition = AVAudioMake3DPoint(frame.camera.transform.columns.0.w, frame.camera.transform.columns.1.w, frame.camera.transform.columns.2.w)
-            env.listenerPosition = AVAudioMake3DPoint(0.5,0.5,0)
+            var listenerPos = simd_float3(0.5,0.5,0)
+            if let lastDevRotation {
+                listenerPos = lastDevRotation * listenerPos
+            }
+            env.listenerPosition = listenerPos.av
 //            env.listenerPosition = AVAudioMake3DPoint(0, 0, 0)
             
             // set audio pooints
             for i in 0..<nSounds {
                 var pt = pointCloud[i]
                 pt = simd_float3(ewmaX.update(pt.x), ewmaY.update(pt.y), ewmaZ.update(pt.z))
+                if let lastDevRotation {
+                    pt = lastDevRotation * pt
+                }
            //     print("audio at \(pt) = \(sqrt(pt.x*pt.x + pt.y*pt.y + pt.z+pt.z))")
-                let avPoint = AVAudioMake3DPoint(-pt[1] * 30, -pt[0] * 30, -pt[2] * 30)
+                let avPoint = simd_float3(-pt[1] * 30, -pt[0] * 30, -pt[2] * 30).av
                // print("\(pt)")
 //                let avPoint = AVAudioMake3DPoint(-80, 0, 0)
 //                let rad = -(abs(Float(DispatchTime.now().uptimeNanoseconds - startTime.uptimeNanoseconds) / 1e9) / 5 * (2*Float.pi))
@@ -339,5 +360,25 @@ class ARClient: NSObject, ObservableObject, ARSessionDelegate {
 extension simd_float3 {
     var magnitude: Float {
         sqrt(x*x + y*y + z*z)
+    }
+    
+    var av: AVAudio3DPoint {
+        AVAudioMake3DPoint(x, y,    z)
+    }
+    
+    init(_ x: Double, _ y: Double, _ z: Double) {
+        self.init(Float(x), Float(y), Float(z))
+    }
+}
+
+
+
+extension simd_float3x3 {
+    init(rotationMatrix r: CMRotationMatrix) {
+        self.init([
+            simd_float3(Float(-r.m11), Float(r.m13), Float(r.m12)),
+            simd_float3(Float(-r.m31), Float(r.m33), Float(r.m32)),
+            simd_float3(Float(-r.m21), Float(r.m23), Float(r.m22)),
+        ])
     }
 }
