@@ -1,0 +1,66 @@
+import "./styles.css";
+import { Canvas, useLoader } from "@react-three/fiber";
+import { Suspense } from "react";
+import circleImg from "./asset/circle.png";
+import * as THREE from "three";
+import { useMemo } from "react";
+function Points() {
+  const CircleImg = useLoader(THREE.TextureLoader, circleImg);
+  const count = 100; // number point accross one axis ini akan generate point 10.00 dimana count hanya 100 karena multiply
+  const sep = 3; //merupakan distance dari tiap point
+  let positions = useMemo(() => {
+    let positions = [];
+    for (let xi = 0; xi < count; xi++) {
+      for (let zi = 0; zi < count; zi++) {
+        let x = sep * (xi - count / 2);
+        let z = sep * (zi - count / 2);
+        let y = 0;
+        positions.push(x, y, z);
+      }
+    }
+    return new Float32Array(positions); //merupakan array yang sesuai dengan buffer
+  }, [count, sep]); //ini dibuat menjadi 1d array dikarenakan bufferAtribute tidak dapat menggunakan 2d array maka dari itu position array akan menjadi seperti [x1,y1,z1,x2,y2,z2,x....]
+  return (
+    <points>
+      <bufferGeometry attach="geometry">
+        <bufferAttribute
+          attach="attributes-position" //attribute parameter yang akan dikontrol
+          array={positions}
+          count={positions.length / 3} //
+          itemSize={3} //dikeranakan telah diketahui bahwa tiap arraytype axis akan berisi 3 value pada 1d array
+        />
+      </bufferGeometry>
+      <pointsMaterial
+        attach="material"
+        map={CircleImg}
+        color={0x00aaff}
+        sizes={0.5}
+        sizeAttenuation //merupakan parameter yang menscale object berdasarkan perspective camera
+        transparent={false}
+        alphaTest={0.5} //merupakan thresshold saat rendering untuk mencega bila opacity dibawah value alphatest
+        opacity={1.0}
+      />
+    </points>
+  );
+}
+
+function AnimationCanvas() {
+  return (
+    <Canvas camera={{ position: [100, 10, 0], fov: 75 }}>
+      <Suspense fallback={false}>
+        <Points />
+      </Suspense>
+    </Canvas>
+  );
+}
+
+export default function App() {
+  return (
+    <div className="App">
+      <Suspense fallback={<div>Loading...</div>}>
+        <AnimationCanvas />
+      </Suspense>
+    </div>
+  );
+}
+
