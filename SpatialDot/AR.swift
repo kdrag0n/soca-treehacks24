@@ -71,8 +71,7 @@ class ARClient: NSObject, ObservableObject, ARSessionDelegate, URLSessionDelegat
     private let ewmaZ = EwmaF32(initial: 0, weight: ewmaWeight)
     
     override init() {
-        
-        var request = URLRequest(url: URL(string: "wss://a109-171-64-77-61.ngrok-free.app/ws/send_data")!)
+        var request = URLRequest(url: URL(string: "ws://192.168.18.240:8000/ws/send_data")!)
         request.timeoutInterval = 500
         webSocket = WebSocket(request: request)
         print(webSocket)
