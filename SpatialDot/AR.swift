@@ -8,13 +8,18 @@
 import Foundation
 import SwiftUI
 import ARKit
+import PHASE
 
 class ARClient: NSObject, ObservableObject, ARSessionDelegate {
-    let session = ARSession()
+    let view = ARSCNView(frame: .zero)
+    let session: ARSession
     private var pointCloud = [simd_float3]()
     @Published var depthBuffer: CVPixelBuffer? = nil
+    @Published var contoursPath: CGPath? = nil
+    private var oldAnchors = [ARAnchor]()
     
     override init() {
+        session = view.session
         super.init()
         session.delegate = self
         start()
@@ -104,6 +109,60 @@ class ARClient: NSObject, ObservableObject, ARSessionDelegate {
             CVPixelBufferUnlockBaseAddress(confidenceBuf, .readOnly)
             CVPixelBufferUnlockBaseAddress(buf, .readOnly)
             depthBuffer = grayscaleBuf
+            
+            for anchor in oldAnchors {
+                session.remove(anchor: anchor)
+            }
+            oldAnchors.removeAll()
+            
+            let contoursReq = VNDetectContoursRequest()
+            contoursReq.revision = VNDetectContourRequestRevision1
+            contoursReq.detectsDarkOnLight = false
+            contoursReq.contrastAdjustment = 1.0
+            contoursReq.maximumImageDimension = 256
+            // orientation is wrong but doesnt matter
+            let reqHandler = VNImageRequestHandler(cvPixelBuffer: grayscaleBuf, orientation: .up)
+            try! reqHandler.perform([contoursReq])
+            if let contours = contoursReq.results?.first {
+                print("contours: count=\(contours.contourCount) toplevel=\(contours.topLevelContourCount)")// path=\(contours.normalizedPath)")
+                contoursPath = contours.normalizedPath
+                
+                for ci in 0..<contours.contourCount {
+                    let contour = try! contours.contour(at: ci)
+                    var totalX: Float = 0
+                    var totalY: Float = 0
+                    var totalZ: Float = 0
+                    for pt in contour.normalizedPoints {
+                        let imgX = pt.x * Float(width)
+                        let imgY = pt.y * Float(height)
+                        let imgXint = max(0, min(Int(imgX), width-1))
+                        let imgYint = max(0, min(Int(imgY), height-1))
+                        let depthVal = bufAddr.advanced(by: (imgYint*width + imgXint) * 4).load(as: Float32.self)
+                        
+                        
+                        let worldX = (Float(imgX) - cameraIntrinsics[2][0]) * depthVal / cameraIntrinsics[0][0]
+                        let worldY = (Float(imgY) - cameraIntrinsics[2][1]) * depthVal / cameraIntrinsics[1][1]
+                        let worldZ = -depthVal
+                        
+                        totalX += worldX
+                        totalY += worldY
+                        totalZ += worldZ
+                    }
+                    
+                    let centerX = totalX / Float(contour.normalizedPoints.count)
+                    let centerY = totalY / Float(contour.normalizedPoints.count)
+                    let centerZ = totalZ / Float(contour.normalizedPoints.count)
+                    print("contour \(ci): \(centerX) \(centerY) \(centerZ)")
+                    var translation = matrix_identity_float4x4
+                    translation.columns.3.x = centerX
+                    translation.columns.3.y = centerY
+                    translation.columns.3.z = centerZ
+                    let transform = simd_mul(frame.camera.transform, translation)
+                    let anchor = ARAnchor(transform: transform)
+                    session.add(anchor: anchor)
+                    oldAnchors.append(anchor)
+                }
+            }
         }
     }
     

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D81770D12B81A76C00DFD9AE /* pinknoise.wav in Resources */ = {isa = PBXBuildFile; fileRef = D81770D02B81A76C00DFD9AE /* pinknoise.wav */; };
 		D835D9B02B80D05F007E169B /* SpatialDotApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D835D9AF2B80D05F007E169B /* SpatialDotApp.swift */; };
 		D835D9B22B80D05F007E169B /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D835D9B12B80D05F007E169B /* ContentView.swift */; };
 		D835D9B42B80D060007E169B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D835D9B32B80D060007E169B /* Assets.xcassets */; };
@@ -16,6 +17,7 @@
 
 /* Begin PBXFileReference section */
 		D81770CF2B81928C00DFD9AE /* SpatialDot.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SpatialDot.entitlements; sourceTree = "<group>"; };
+		D81770D02B81A76C00DFD9AE /* pinknoise.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = pinknoise.wav; sourceTree = "<group>"; };
 		D835D9AC2B80D05F007E169B /* SpatialDot.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SpatialDot.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D835D9AF2B80D05F007E169B /* SpatialDotApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpatialDotApp.swift; sourceTree = "<group>"; };
 		D835D9B12B80D05F007E169B /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -38,6 +40,7 @@
 		D835D9A32B80D05F007E169B = {
 			isa = PBXGroup;
 			children = (
+				D81770D02B81A76C00DFD9AE /* pinknoise.wav */,
 				D835D9AE2B80D05F007E169B /* SpatialDot */,
 				D835D9AD2B80D05F007E169B /* Products */,
 			);
@@ -132,6 +135,7 @@
 			files = (
 				D835D9B72B80D060007E169B /* Preview Assets.xcassets in Resources */,
 				D835D9B42B80D060007E169B /* Assets.xcassets in Resources */,
+				D81770D12B81A76C00DFD9AE /* pinknoise.wav in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
